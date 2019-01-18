@@ -21,7 +21,7 @@ app.get('/health-check', function (req, res) {
 
 // POST method route - log to the console
 app.post('/', function (req, res) {
-  logit('PUT /');
+  logit('POST /');
   logit('--------');
 
   req.on('data', (chunk) => {
@@ -29,8 +29,8 @@ app.post('/', function (req, res) {
   });
   req.on('end', () => {
     logit('No more data in response.');
+    res.status(200).send('OK')
   });
-  res.status(200).send('OK')
 })
 
 app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`))
