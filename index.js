@@ -25,14 +25,13 @@ app.get('/health-check', function (req, res) {
 
 // POST method route - log to the console
 app.post('/', function (req, res) {
-  log.info('POST /');
-  log.info('--------');
+  log.debug('POST /');
 
   req.on('data', (chunk) => {
     log.info(`BODY: ${chunk}`);
   });
   req.on('end', () => {
-    log.info('No more data in response.');
+    log.debug('No more data in response.');
     res.status(200).send('OK')
   });
 })
