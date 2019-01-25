@@ -1,8 +1,9 @@
 var express = require('express')
 var app = express()
-const fs = require('fs');
+var os = require('os')
+const fs = require('fs')
 
-var bunyan = require('bunyan');
+var bunyan = require('bunyan')
 
 var log = bunyan.createLogger({
     name: 'webhook',
@@ -36,7 +37,7 @@ function logCSV(JSONString) {
   l = l + JSONObject.payload[0].user.name + '", "';
   l = l + JSONObject.payload[0].department.name + '", "';
   l = l + JSONObject.payload[0].project.name + '", "';
-  l = l + JSON.stringify(JSONObject.payload[0].operated_on) +'"';
+  l = l + JSON.stringify(JSONObject.payload[0].operated_on) +'"' + os.EOL;
 
   if (JSONObject.payload.length > 1) {
     log.warn('payload array > 1 (' + JSONObject.payload.length + ') - information not saved in additional payload objects NOT saved');
