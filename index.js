@@ -18,23 +18,38 @@ const PORT=9876;
 // takes a JSON string, converts it to an object and saves it into a CSV file
 function logCSV(JSONString) {
   var JSONObject = JSON.parse(JSONString);
+  var l = ""; // line used to collect the pieces
 
   //log.info(JSONObject);
-  console.log(JSONObject);
   log.info('JSONString:'+JSONString);
 
-  log.info('message_id: ' + JSONObject.message_id + ' timestamp: ' + JSONObject.timestamp + ' category: ' + JSONObject.category + ' version: ' + JSONObject.version);
-  log.info('number of objects in payload: ' + JSONObject.payload.length);
-  for (i = 0; i < JSONObject.payload.length; i++) {
-    log.info('id: ' + JSONObject.payload[i].id + ' type: ' + JSONObject.payload[i].type + ' type_code: ' + JSONObject.payload[i].type_code +
-            ' date: ' + JSONObject.payload[i].date + ' region: ' + JSONObject.payload[i].region);
-    log.info('payload: ' + JSON.stringify(JSONObject.payload[i].payload));
-    log.info('user: ' + JSON.stringify(JSONObject.payload[i].user));
-    log.info('department: ' + JSON.stringify(JSONObject.payload[i].department));
-    log.info('project: ' + JSON.stringify(JSONObject.payload[i].project));
-    log.info('operated_on: ' + JSON.stringify(JSONObject.payload[i].operated_on));
+  l = l + '"' + JSONObject.message_id + '", "';
+  l = l + JSONObject.timestamp + '", "';
+  l = l + JSONObject.category + '", "';
+  l = l + JSONObject.version + '", "';
+  l = l + JSONObject.payload[0].id + '", "';
+  l = l + JSONObject.payload[0].type + '", "';
+  l = l + JSONObject.payload[0].type_code + '", "';
+  l = l + JSONObject.payload[0].date + '", "';
+  l = l + JSONObject.payload[0].region + '", "';
+  l = l + JSON.stringify(JSONObject.payload[0].payload) + '", "';
+  l = l + JSONObject.payload[0].user.name + '", "';
+  l = l + JSONObject.payload[0].department.name + '", "';
+  l = l + JSONObject.payload[0].project.name + '", "';
+  l = l + JSON.stringify(JSONObject.payload[0].operated_on) +'"';
 
+  if (JSONObject.payload.length > 1) {
+    log.warn('payload array > 1 (' + JSONObject.payload.length + ') - information not saved in additional payload objects NOT saved');
   }
+
+  //console.log(l);
+  fs.appendFile('audit_log.csv', l, (err) => {
+    if (err) {
+      log.warn("Error writing to file",err);
+      throw err;
+    }
+  });
+
 }
 
 // respond with 200 (OK)
@@ -45,7 +60,7 @@ app.get('/health-check', function (req, res) {
 
 // POST method route - log to the console
 app.post('/', function (req, res) {
-  log.debug('POST /');
+  log.info('POST /');
 
   req.on('data', (chunk) => {
     log.debug(`BODY: ${chunk}`);
