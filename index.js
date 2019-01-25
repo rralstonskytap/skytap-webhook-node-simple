@@ -1,20 +1,25 @@
 var express = require('express')
 var app = express()
-var os = require('os')
+const os = require('os')
 const fs = require('fs')
+const AUDIT_FILE = 'audit_log.csv';
+const LOG_FILE = 'webhook.log';
+const HEADER = '"message_id", "timestamp", "category", "version", "id", "type", "type_code", "date", "region", "payload", "user", "department", "project", "operated_on"';
+
+// Update to change the port the listener accepts connections on
+const PORT=9876;
+
 
 var bunyan = require('bunyan')
 
 var log = bunyan.createLogger({
     name: 'webhook',
     streams: [{
-        path: 'webhook.log'
+        path: LOG_FILE
         // `type: 'file'` is implied
     }]
 });
 
-// Update to change the port the listener accepts connections on
-const PORT=9876;
 
 // takes a JSON string, converts it to an object and saves it into a CSV file
 function logCSV(JSONString) {
@@ -33,18 +38,18 @@ function logCSV(JSONString) {
   l = l + JSONObject.payload[0].type_code + '", "';
   l = l + JSONObject.payload[0].date + '", "';
   l = l + JSONObject.payload[0].region + '", "';
-  l = l + JSON.stringify(JSONObject.payload[0].payload) + '", "';
+  l = l + JSON.stringify(JSONObject.payload[0].payload).replace(/\"/g, "").replace(/\,/g, " ") + '", "';
   l = l + JSONObject.payload[0].user.name + '", "';
   l = l + JSONObject.payload[0].department.name + '", "';
   l = l + JSONObject.payload[0].project.name + '", "';
-  l = l + JSON.stringify(JSONObject.payload[0].operated_on) +'"' + os.EOL;
+  l = l + JSON.stringify(JSONObject.payload[0].operated_on).replace(/\"/g, "").replace(/\,/g, " ") + '"' + os.EOL;
 
   if (JSONObject.payload.length > 1) {
     log.warn('payload array > 1 (' + JSONObject.payload.length + ') - information not saved in additional payload objects NOT saved');
   }
 
   //console.log(l);
-  fs.appendFile('audit_log.csv', l, (err) => {
+  fs.appendFile(AUDIT_FILE, l, (err) => {
     if (err) {
       log.warn("Error writing to file",err);
       throw err;
@@ -73,4 +78,15 @@ app.post('/', function (req, res) {
   });
 })
 
+// check to see if the audit_log.csv file exists and if not create and add a header line.
+fs.access(AUDIT_FILE, fs.constants.F_OK | fs.constants.W_OK, (err) => {
+  if (err) { // doesn't exist
+    fs.appendFile(AUDIT_FILE, HEADER + os.EOL, (err) => {
+      if (err) {
+        log.warn("Error writing to file",err);
+        throw err;
+      }
+    });
+  }
+});
 app.listen(PORT, () => log.info(`Example app listening on port ${PORT}!`))
