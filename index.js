@@ -1,4 +1,5 @@
 var express = require('express')
+var https = require('https')
 var app = express()
 const os = require('os')
 const fs = require('fs')
@@ -89,4 +90,13 @@ fs.access(AUDIT_FILE, fs.constants.F_OK | fs.constants.W_OK, (err) => {
     });
   }
 });
-app.listen(PORT, () => log.info(`Example app listening on port ${PORT}!`))
+
+https.createServer({
+  key: fs.readFileSync('server.key'),
+  cert: fs.readFileSync('server.cert')
+}, app)
+.listen(PORT, function () {
+  log.info(`Example app listening on port ${PORT}!`)
+})
+
+//app.listen(PORT, () => log.info(`Example app listening on port ${PORT}!`))
