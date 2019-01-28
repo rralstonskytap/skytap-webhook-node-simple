@@ -9,7 +9,7 @@ const HEADER = '"message_id", "timestamp", "category", "version", "id", "type", 
 
 // Update to change the port the listener accepts connections on
 const PORT=9876;
-
+const HTTPS=true; // use https?
 
 var bunyan = require('bunyan')
 
@@ -65,7 +65,7 @@ app.get('/health-check', function (req, res) {
   res.status(200).send('OK')
 })
 
-// POST method route - log to the console
+// POST method route - 
 app.post('/', function (req, res) {
   log.info('POST /');
 
@@ -91,12 +91,14 @@ fs.access(AUDIT_FILE, fs.constants.F_OK | fs.constants.W_OK, (err) => {
   }
 });
 
-https.createServer({
-  key: fs.readFileSync('server.key'),
-  cert: fs.readFileSync('server.cert')
-}, app)
-.listen(PORT, function () {
-  log.info(`Example app listening on port ${PORT}!`)
-})
-
-//app.listen(PORT, () => log.info(`Example app listening on port ${PORT}!`))
+if (HTTPS) {
+   https.createServer({
+     key: fs.readFileSync('server.key'),
+     cert: fs.readFileSync('server.cert')
+   }, app)
+   .listen(PORT, function () {
+     log.info(`https example app listening on port ${PORT}!`)
+   })
+} else {
+   app.listen(PORT, () => log.info(`http example app listening on port ${PORT}!`))
+}
