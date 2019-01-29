@@ -3,15 +3,19 @@ var https = require('https')
 var app = express()
 const os = require('os')
 const fs = require('fs')
-const AUDIT_FILE = 'audit_log.csv';
-const LOG_FILE = 'webhook.log';
-const HEADER = '"message_id", "timestamp", "category", "version", "id", "type", "type_code", "date", "region", "payload", "user", "department", "project", "operated_on"';
 
-// Update to change the port the listener accepts connections on
-const PORT=9876;
-const HTTPS=true; // use https?
+require('dotenv').config();
 
 var bunyan = require('bunyan')
+
+// grab environment configuration variables
+// defined in ./.env
+var AUDIT_FILE = process.env.AUDIT_FILE;
+var LOG_FILE = process.env.LOG_FILE;
+var HEADER = process.env.HEADER;
+var PORT = process.env.PORT;
+var USE_HTTPS = process.env.USE_HTTPS;
+
 
 var log = bunyan.createLogger({
     name: 'webhook',
@@ -20,7 +24,6 @@ var log = bunyan.createLogger({
         // `type: 'file'` is implied
     }]
 });
-
 
 // takes a JSON string, converts it to an object and saves it into a CSV file
 function logCSV(JSONString) {
@@ -65,7 +68,7 @@ app.get('/health-check', function (req, res) {
   res.status(200).send('OK')
 })
 
-// POST method route - 
+// POST method route -
 app.post('/', function (req, res) {
   log.info('POST /');
 
@@ -91,7 +94,7 @@ fs.access(AUDIT_FILE, fs.constants.F_OK | fs.constants.W_OK, (err) => {
   }
 });
 
-if (HTTPS) {
+if (USE_HTTPS) {
    https.createServer({
      key: fs.readFileSync('server.key'),
      cert: fs.readFileSync('server.cert')
